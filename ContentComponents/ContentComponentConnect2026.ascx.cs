@@ -43,6 +43,12 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
 
     #region Block Attributes
 
+    [ContentChannelTypeField(
+        "Content Channel Type",
+        Description = "Determines which content channel type this block is scoped to. Controls which content channels are available and which attributes are shown in the configuration dialog.",
+        IsRequired = true,
+        Key = AttributeKey.ContentChannelType )]
+
     [ContentChannelField(
         "Content Channel",
         Category = "CustomSetting",
@@ -97,6 +103,7 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
 
         private static class AttributeKey
         {
+            public const string ContentChannelType = "ContentChannelType";
             public const string ContentChannel = "ContentChannel";
             public const string ItemCacheDuration = "ItemCacheDuration";
             public const string ContentComponentTemplate = "ContentComponentTemplate";
@@ -130,12 +137,25 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
         /// </summary>
         private const string CONTENT_CHANNEL_ITEM_CLOSE_MODAL_TEXT = "Close";
 
-        /// <summary>
-        /// The content channel type identifier
-        /// </summary>
-        private int ContentChannelTypeId = new ContentChannelTypeService( new RockContext() ).GetId( "d455088e-5bb0-4859-948f-f11f5bcd09f5".AsGuid() ) ?? 0;
-
         #endregion Fields
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the content channel type identifier from the block attribute.
+        /// </summary>
+        private int GetContentChannelTypeId()
+        {
+            var guid = this.GetAttributeValue( AttributeKey.ContentChannelType ).AsGuidOrNull();
+            if ( guid.HasValue )
+            {
+                return new ContentChannelTypeService( new RockContext() ).GetId( guid.Value ) ?? 0;
+            }
+
+            return 0;
+        }
+
+        #endregion Properties
 
         #region Base Control Methods
 
@@ -181,7 +201,7 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
             base.LoadViewState( savedState );
 
             var rockContext = new RockContext();
-            CreateFilterControl( this.ContentChannelTypeId, DataViewFilter.FromJson( ViewState["DataViewFilter"].ToString() ), false, rockContext );
+            CreateFilterControl( this.GetContentChannelTypeId(), DataViewFilter.FromJson( ViewState["DataViewFilter"].ToString() ), false, rockContext );
         }
 
         /// <summary>
@@ -484,13 +504,29 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
 
             if ( contentChannel == null )
             {
-                contentChannel = new ContentChannel { ContentChannelTypeId = this.ContentChannelTypeId };
+                contentChannel = new ContentChannel { ContentChannelTypeId = this.GetContentChannelTypeId() };
             }
 
             tbComponentName.Text = contentChannel.Name;
             contentChannel.LoadAttributes();
             avcContentChannelAttributes.NumberOfColumns = 2;
             avcContentChannelAttributes.ValidationGroup = mdContentComponentConfig.ValidationGroup;
+
+            // Only show channel attributes that have no category, or whose category name matches
+            // the selected content channel type name.
+            var contentChannelTypeGuid = this.GetAttributeValue( AttributeKey.ContentChannelType ).AsGuidOrNull();
+            if ( contentChannelTypeGuid.HasValue )
+            {
+                var contentChannelTypeCache = ContentChannelTypeCache.Get( contentChannelTypeGuid.Value );
+                if ( contentChannelTypeCache != null )
+                {
+                    var channelAttributes = contentChannel.Attributes.Select( a => a.Value );
+                    avcContentChannelAttributes.IncludedAttributes = channelAttributes
+                        .Where( a => !a.Categories.Any() || a.Categories.Any( c => c.Name == contentChannelTypeCache.Name ) )
+                        .ToArray();
+                }
+            }
+
             avcContentChannelAttributes.AddEditControls( contentChannel );
 
             nbItemCacheDuration.Text = this.GetAttributeValue( AttributeKey.ItemCacheDuration );
@@ -547,7 +583,7 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
                 filter.ExpressionType = FilterExpressionType.GroupAll;
             }
 
-            CreateFilterControl( this.ContentChannelTypeId, filter, true, rockContext );
+            CreateFilterControl( this.GetContentChannelTypeId(), filter, true, rockContext );
         }
 
         /// <summary>
@@ -602,7 +638,7 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
             if ( contentChannel == null )
             {
                 contentChannel = new ContentChannel();
-                contentChannel.ContentChannelTypeId = this.ContentChannelTypeId;
+                contentChannel.ContentChannelTypeId = this.GetContentChannelTypeId();
                 contentChannelService.Add( contentChannel );
             }
 
@@ -1052,7 +1088,7 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
         protected void groupControl_AddFilterClick( object sender, EventArgs e )
         {
             FilterGroup groupControl = sender as FilterGroup;
-            FilterField filterField = AddFilterField( groupControl, Guid.NewGuid(), this.ContentChannelTypeId );
+            FilterField filterField = AddFilterField( groupControl, Guid.NewGuid(), this.GetContentChannelTypeId() );
             filterField.Expanded = true;
         }
 
@@ -1130,7 +1166,5 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
             FilterGroup groupControl = sender as FilterGroup;
             groupControl.Parent.Controls.Remove( groupControl );
         }
-
-
     }
 }
