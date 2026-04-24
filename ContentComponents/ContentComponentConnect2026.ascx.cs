@@ -37,9 +37,9 @@ namespace RockWeb.Plugins.church_vrl.ContentComponents
     /// <summary>
     ///
     /// </summary>
-    [DisplayName( "Content Component - Connect 2026" )]
+    [DisplayName( "Flexible Content Component - VRL" )]
     [Category( "CMS" )]
-    [Description( "Block to manage and display content specifically for connect.vrl.church." )]
+    [Description( "Clone of core Content Component block that allows for the selection of a specific content channel type." )]
 
     #region Block Attributes
 
