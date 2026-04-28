@@ -8,11 +8,14 @@
 {% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
 
 {% for item in Items %}
+
+    //- Confirm valid item
     {% assign isValidItem = false %}
     {% assign activeItem = item | Attribute:'Active' %}
     {% assign startDateTime = item.StartDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
     {% assign expireDateTime = item.ExpireDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
     {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' %}
+    {% assign dayofWeek = item | Attribute:'DayOfWeek' %}
 
     {% if activeItem == 'Active' %}
         {% if startDateTime == null or startDateTime <= now %}
@@ -52,7 +55,7 @@
                     <li>
                         <a class="{{ btnClass }}" href="{{ href }}" data-vt>
                             <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
+                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}|{{ dayofWeek }}){% endif %}</span>
                             <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                         </a>
                     </li>
