@@ -1,7 +1,7 @@
 {% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
-
 {% if isAdmin %}
-    <h1>You're and Admin, Harry!</h1>
+
+    <h1>You're an Admin, Harry!</h1>
     {% for item in Items %}
 
         {% assign active = item | Attribute:'Active' %}
