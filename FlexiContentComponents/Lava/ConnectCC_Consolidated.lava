@@ -5,6 +5,8 @@
 {% capture gridHtml %}{% endcapture %}
 {% capture listHtml %}{% endcapture %}
 
+{% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
+
 {% for item in Items %}
     {% assign isValidItem = false %}
     {% assign activeItem = item | Attribute:'Active' %}
@@ -50,7 +52,7 @@
                     <li>
                         <a class="{{ btnClass }}" href="{{ href }}" data-vt>
                             <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }}</span>
+                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
                             <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                         </a>
                     </li>
@@ -66,7 +68,7 @@
                     <li>
                         <a class="abcd-btn" href="/page/41889{{ href }}?WorkflowTypeId={{ wfId }}" data-vt>
                             <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }}<!--({{ item.Id }})--></span>
+                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
                             {% comment %} <span class="btn-label">{{ item.Id }}</span> {% endcomment %}
                         </a>
                     </li>
@@ -81,7 +83,7 @@
                 <li>
                     <a class="menu-btn" href="{{ href }}" data-vt>
                         <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                        <span class="btn-label">{{ item.Title }}</span>
+                        <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
                         <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                     </a>
                 </li>
