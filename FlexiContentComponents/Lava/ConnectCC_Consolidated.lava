@@ -1,0 +1,124 @@
+{% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
+
+{% if isAdmin %}
+    <h1>You're and Admin, Harry!</h1>
+    {% for item in Items %}
+
+        {% assign active = item | Attribute:'Active' %}
+<pre>
+{{ item.Title }} | {{ item.Id }}
+{{ item.StartDate }} | {{ item.ExpireDate }}
+{{ active }}
+{{ item | Attribute:'FontAwesomeClass' }}
+</pre>
+
+
+    {% endfor %}
+
+//---------------
+{% else %}
+
+{% assign highlightCount = 0 %}
+{% assign gridCount = 0 %}
+
+{% capture highlightHtml %}{% endcapture %}
+{% capture gridHtml %}{% endcapture %}
+{% capture listHtml %}{% endcapture %}
+
+{% for item in Items %}
+    {% assign active = item | Attribute:'Active' | Strip %}
+
+    {% if active == 'Active' %}
+        {% assign section = item | Attribute:'ButtonSection' | Strip %}
+        {% assign icon = item | Attribute:'FontAwesomeClass' | Strip %}
+        {% if icon == '' %}{% assign icon = 'fa fa-arrow-right' %}{% endif %}
+
+        {% assign link = item | Attribute:'ExternalLink' | Strip %}
+        {% assign wfId = item | Attribute:'WorkflowTypeId' | Strip %}
+
+        {% if link != '' %}
+            {% assign href = link %}
+        {% elsif wfId != '' %}
+            {% assign href = '/WorkflowEntry/' | Append:wfId %}
+        {% else %}
+            {% assign href = '/page/41889' %}
+        {% endif %}
+
+        {% comment %} --- HIGHLIGHT SECTION --- {% endcomment %}
+        {% if section == 'Highlight' %}
+            {% if highlightCount < 3 %}
+                {% if highlightCount == 0 %}
+                    {% assign btnClass = 'menu-btn highlight' %}
+                {% else %}
+                    {% assign btnClass = 'menu-btn' %}
+                {% endif %}
+
+                {% capture highlightHtml %}
+                    {{ highlightHtml }}
+                    <li>
+                        <a class="{{ btnClass }}" href="{{ href }}" data-vt>
+                            <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
+                            <span class="btn-label">{{ item.Title }}</span>
+                            <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
+                        </a>
+                    </li>
+                {% endcapture %}
+                {% assign highlightCount = highlightCount | Plus:1 %}
+            {% endif %}
+
+        {% comment %} --- GRID SECTION --- {% endcomment %}
+        {% elsif section == 'Grid' %}
+            {% if gridCount < 4 %}
+                {% capture gridHtml %}
+                    {{ gridHtml }}
+                    <li>
+                        <a class="abcd-btn" href="/page/41889{{ href }}?WorkflowTypeId={{ wfId }}" data-vt>
+                            <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
+                            <span class="btn-label">{{ item.Title }} ({{ item.Id }})</span>
+                            {% comment %} <span class="btn-label">{{ item.Id }}</span> {% endcomment %}
+                        </a>
+                    </li>
+                {% endcapture %}
+                {% assign gridCount = gridCount | Plus:1 %}
+            {% endif %}
+
+        {% comment %} --- LIST SECTION --- {% endcomment %}
+        {% elsif section == 'List' %}
+            {% capture listHtml %}
+                {{ listHtml }}
+                <li>
+                    <a class="menu-btn" href="{{ href }}" data-vt>
+                        <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
+                        <span class="btn-label">{{ item.Title }}</span>
+                        <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
+                    </a>
+                </li>
+            {% endcapture %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{% if highlightHtml != '' %}
+<ul class="btn-list list-unstyled">
+    {{ highlightHtml }}
+</ul>
+{% endif %}
+
+{% if gridHtml != '' %}
+<div class="section-divider" aria-hidden="true"><h2>Next Steps</h2></div>
+<nav aria-label="Your Next Steps">
+    <ul class="btn-grid list-unstyled">
+        {{ gridHtml }}
+    </ul>
+</nav>
+{% endif %}
+
+{% if listHtml != '' %}
+<div class="section-divider" aria-hidden="true"><h2>Other Links</h2></div>
+<nav aria-label="Other Links">
+    <ul class="btn-list list-unstyled">
+        {{ listHtml }}
+    </ul>
+</nav>
+{% endif %}
+{% endif %}
