@@ -7,6 +7,82 @@
 
 {% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
 
+{% if isAdmin %}
+
+    {% for item in Items %}
+        //- I DECLARE VARIABLES!
+        {% assign itemId = item.Id %}
+        {% assign isValidItem = false %}
+        {% assign activeItem = item | Attribute:'Active' %}
+        {% assign startDateTime = item.StartDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
+        {% assign expireDateTime = item.ExpireDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
+        {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' %}
+        {% assign today = 'Now' | Date:'dddd' %}
+        {% assign dayofWeek = item | Attribute:'DayOfWeek' %}
+
+        //- Let's check if the item is set for today
+        {% if dayofWeek == empty %}
+            {% assign isToday = 'true' %}
+        {% elseif dayofWeek contains today %}
+            {% assign isToday = 'true' %}
+        {% else %}
+            {% assign isToday = 'false' %}
+        {% endif %}
+
+        //- Are we allowed to show the item
+        {% if activeItem == 'Active' %}
+            {% if startDateTime == null or startDateTime <= now %}
+                {% if expireDateTime == null or expireDateTime >= now %}
+                    {% if isToday == 'true' %}
+                        {% assign isValidItem = true %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
+
+        {% endif %}
+
+
+        //- Let's show some items now
+        {% if isValidItem == 'true' %}
+            //- Now that we're true, let's get the other attributes we'll need
+            {% assign buttonSection = item | Attribute:'ButtonSection' %}
+            {% assign fontAwesome = item | Attribute:'FontAwesomeClass' %}
+            {% assign externalLink = item | Attribute:'ExternalLink' %}
+            {% assign workflowType = item | Attribute:'WorkflowTypeId' %}
+
+            //- First things first, we need to build the url for the buttons
+            <p>{{ item.Title }}: {{ externalLink }}</p>
+
+
+
+        {% endif %}
+
+
+    {% endfor %}
+
+
+    <div class="admin-notice">
+        <h1>You're an Admin!</h1>
+        {% stylesheet %}
+            .admin-notice {
+                position: fixed;
+                top: 0;
+                padding: 1rem;
+                background-color: rgba(219 177 117 / .4);
+                left: 0;
+                width: 100%;
+                text-align: center;
+
+                h1 {
+
+                    }
+                }
+
+        {% endstylesheet %}
+    </div>
+{% else %}
+
 {% for item in Items %}
 
     //- Confirm valid item
@@ -16,6 +92,7 @@
     {% assign expireDateTime = item.ExpireDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
     {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' %}
     {% assign dayofWeek = item | Attribute:'DayOfWeek' %}
+    {% assign itemId = item.Id %}
 
     {% if activeItem == 'Active' %}
         {% if startDateTime == null or startDateTime <= now %}
@@ -28,20 +105,16 @@
     {% if isValidItem == 'true' %}
         {% assign section = item | Attribute:'ButtonSection' %}
         {% assign icon = item | Attribute:'FontAwesomeClass' %}
-        {% if icon == '' %}{% assign icon = 'fa fa-arrow-right' %}{% endif %}
 
-        {% assign link = item | Attribute:'ExternalLink' %}
-        {% assign wfId = item | Attribute:'WorkflowTypeId' %}
+        {% assign externalLink = item | Attribute:'ExternalLink' %}
+        {% assign workflowTypeId = item | Attribute:'WorkflowType' %}
 
-        {% if link != '' %}
-            {% assign href = link %}
-        {% elsif wfId != '' %}
-            {% assign href = '/WorkflowEntry/' | Append:wfId %}
-        {% else %}
-            {% assign href = '/page/41889' %}
+        //- build the button link
+        {% if externalLink and externalLink != '' %}
         {% endif %}
 
-        {% comment %} --- HIGHLIGHT SECTION --- {% endcomment %}
+
+        //- build highlihgt section
         {% if section == 'Highlight' %}
             {% if highlightCount < 3 %}
                 {% if highlightCount == 0 %}
@@ -55,7 +128,7 @@
                     <li>
                         <a class="{{ btnClass }}" href="{{ href }}" data-vt>
                             <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}|{{ dayofWeek }}){% endif %}</span>
+                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}|{{ dayofWeek }}){% endif %}</span>
                             <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                         </a>
                     </li>
@@ -63,7 +136,7 @@
                 {% assign highlightCount = highlightCount | Plus:1 %}
             {% endif %}
 
-        {% comment %} --- GRID SECTION --- {% endcomment %}
+        //- build grid section
         {% elsif section == 'Grid' %}
             {% if gridCount < 4 %}
                 {% capture gridHtml %}
@@ -71,7 +144,7 @@
                     <li>
                         <a class="abcd-btn" href="/page/41889{{ href }}?WorkflowTypeId={{ wfId }}" data-vt>
                             <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
+                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
                             {% comment %} <span class="btn-label">{{ item.Id }}</span> {% endcomment %}
                         </a>
                     </li>
@@ -79,7 +152,7 @@
                 {% assign gridCount = gridCount | Plus:1 %}
             {% endif %}
 
-        {% comment %} --- LIST SECTION --- {% endcomment %}
+        //- build list section
         {% elsif section == 'List' %}
             {% capture listHtml %}
                 {{ listHtml }}
@@ -117,4 +190,5 @@
             {{ listHtml }}
         </ul>
     </nav>
+{% endif %}
 {% endif %}
