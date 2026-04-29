@@ -7,12 +7,10 @@
 
 {% assign isAdmin = CurrentPerson | IsInGroup:'2' %}
 
-{% if isAdmin %}
-
     {% for item in Items %}
-        //- I DECLARE VARIABLES!
+        //- I DECLARE VARIABLES! Not bankruptcy ...
         {% assign itemId = item.Id %}
-        {% assign isValidItem = false %}
+        {% assign isValidItem = 'false' %}
         {% assign activeItem = item | Attribute:'Active' %}
         {% assign startDateTime = item.StartDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
         {% assign expireDateTime = item.ExpireDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
@@ -23,9 +21,9 @@
         //- Let's check if the item is set for today
         {% if dayofWeek == empty %}
             {% assign isToday = 'true' %}
-        {% elseif dayofWeek contains today %}
+            {% elseif dayofWeek contains today %}
             {% assign isToday = 'true' %}
-        {% else %}
+            {% else %}
             {% assign isToday = 'false' %}
         {% endif %}
 
@@ -34,7 +32,7 @@
             {% if startDateTime == null or startDateTime <= now %}
                 {% if expireDateTime == null or expireDateTime >= now %}
                     {% if isToday == 'true' %}
-                        {% assign isValidItem = true %}
+                        {% assign isValidItem = 'true' %}
                     {% endif %}
                 {% endif %}
             {% endif %}
@@ -50,145 +48,118 @@
             {% assign fontAwesome = item | Attribute:'FontAwesomeClass' %}
             {% assign externalLink = item | Attribute:'ExternalLink' %}
             {% assign workflowType = item | Attribute:'WorkflowTypeId' %}
+            {% assign constructedURL = '' %}
+            {% assign cleanURL = '' %}
+            {% assign isVrlLink = '' %}
 
             //- First things first, we need to build the url for the buttons
-            <p>{{ item.Title }}: {{ externalLink }}</p>
+            {% if externalLink and externalLink != '' %}
 
+                {% assign cleanURL = externalLink | RegExReplace:'^https?://','' %}
+                {% assign isVrlLink = cleanURL | RegExMatch:'^(www\\.)?vrl\\.church(/|$)' %}
 
-
-        {% endif %}
-
-
-    {% endfor %}
-
-
-    <div class="admin-notice">
-        <h1>You're an Admin!</h1>
-        {% stylesheet %}
-            .admin-notice {
-                position: fixed;
-                top: 0;
-                padding: 1rem;
-                background-color: rgba(219 177 117 / .4);
-                left: 0;
-                width: 100%;
-                text-align: center;
-
-                h1 {
-
-                    }
-                }
-
-        {% endstylesheet %}
-    </div>
-{% else %}
-
-{% for item in Items %}
-
-    //- Confirm valid item
-    {% assign isValidItem = false %}
-    {% assign activeItem = item | Attribute:'Active' %}
-    {% assign startDateTime = item.StartDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
-    {% assign expireDateTime = item.ExpireDateTime | Date:'yyyy-MM-dd HH:mm:ss' %}
-    {% assign now = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' %}
-    {% assign dayofWeek = item | Attribute:'DayOfWeek' %}
-    {% assign itemId = item.Id %}
-
-    {% if activeItem == 'Active' %}
-        {% if startDateTime == null or startDateTime <= now %}
-            {% if expireDateTime == null or expireDateTime >= now %}
-                {% assign isValidItem = true %}
-            {% endif %}
-        {% endif %}
-    {% endif %}
-
-    {% if isValidItem == 'true' %}
-        {% assign section = item | Attribute:'ButtonSection' %}
-        {% assign icon = item | Attribute:'FontAwesomeClass' %}
-
-        {% assign externalLink = item | Attribute:'ExternalLink' %}
-        {% assign workflowTypeId = item | Attribute:'WorkflowType' %}
-
-        //- build the button link
-        {% if externalLink and externalLink != '' %}
-        {% endif %}
-
-
-        //- build highlihgt section
-        {% if section == 'Highlight' %}
-            {% if highlightCount < 3 %}
-                {% if highlightCount == 0 %}
-                    {% assign btnClass = 'menu-btn highlight' %}
+                {% if isVrlLink == true %}
+                    {% capture constructedURL %}
+                        href="https://{{ cleanURL }}"
+                    {% endcapture %}
                 {% else %}
-                    {% assign btnClass = 'menu-btn' %}
+                    {% capture constructedURL %}
+                        href="https://{{ cleanURL }}" target="_blank" rel="noopener"
+                    {% endcapture %}
+
+                {% endif %}
+            {% else %}
+                {% if workflowType != '' %}
+                    {% capture constructedURL %}
+                        href="/page/41889?item={{ itemId }}&workflowtypeid={{ workflowType }}"
+                    {% endcapture %}
+                {% else %}
+                    {% capture constructedURL %}
+                        href="/page/41889?item={{ itemId }}"
+                    {% endcapture %}
+                {% endif %}
+            {% endif %}
+
+            //- Now that we have URL's we can build out each of the sections.
+
+            //- First up is the Highlight section. The first item in this section will be highlighted bright green.
+            {% if buttonSection == 'Highlight' %}
+                {% if highlightCount < 3 %}
+                    {% if highlightCount == 0 %}
+                        {% assign btnClass = 'menu-btn highlight' %}
+                    {% else %}
+                        {% assign btnClass = 'menu-btn' %}
+                    {% endif %}
+
+                    {% capture highlightHtml %}
+                        {{ highlightHtml }}
+                        <li>
+                            <a class="{{ btnClass }}" {{ constructedURL }} data-vt>
+                                <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
+                                <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
+                                <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
+                            </a>
+                        </li>
+                    {% endcapture %}
+                    {% assign highlightCount = highlightCount | Plus:1 %}
                 {% endif %}
 
-                {% capture highlightHtml %}
-                    {{ highlightHtml }}
-                    <li>
-                        <a class="{{ btnClass }}" href="{{ href }}" data-vt>
-                            <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}|{{ dayofWeek }}){% endif %}</span>
-                            <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
-                        </a>
-                    </li>
-                {% endcapture %}
-                {% assign highlightCount = highlightCount | Plus:1 %}
-            {% endif %}
+                //- Let's build out the grid. Future improvement, we'll want to make sure this ALWAYS has 4 items somehow.
+                {% elseif buttonSection == 'Grid' %}
+                    {% if gridCount < 4 %}
+                        {% capture gridHtml %}
+                            {{ gridHtml }}
+                            <li>
+                                <a class="grid-btn" {{ constructedURL }} data-vt>
+                                    <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
+                                    <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
+                                </a>
+                            </li>
+                        {% endcapture %}
+                        {% assign gridCount = gridCount | Plus:1 %}
+                    {% endif %}
 
-        //- build grid section
-        {% elsif section == 'Grid' %}
-            {% if gridCount < 4 %}
-                {% capture gridHtml %}
-                    {{ gridHtml }}
-                    <li>
-                        <a class="abcd-btn" href="/page/41889{{ href }}?WorkflowTypeId={{ wfId }}" data-vt>
-                            <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                            <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
-                            {% comment %} <span class="btn-label">{{ item.Id }}</span> {% endcomment %}
-                        </a>
-                    </li>
-                {% endcapture %}
-                {% assign gridCount = gridCount | Plus:1 %}
+                //- Last we need the rest of the items
+                {% elseif buttonSection =='List' %}
+                    {% capture listHtml %}
+                        {{ listHtml }}
+                        <li>
+                            <a class="menu-btn" {{ constructedURL }} data-vt>
+                                <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
+                                <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
+                                <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
+                            </a>
+                        </li>
+                    {% endcapture %}
             {% endif %}
-
-        //- build list section
-        {% elsif section == 'List' %}
-            {% capture listHtml %}
-                {{ listHtml }}
-                <li>
-                    <a class="menu-btn" href="{{ href }}" data-vt>
-                        <i class="{{ icon }} btn-icon" aria-hidden="true"></i>
-                        <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
-                        <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
-                    </a>
-                </li>
-            {% endcapture %}
         {% endif %}
-    {% endif %}
-{% endfor %}
+    {% endfor %}
 
-{% if highlightHtml != '' %}
-    <ul class="btn-list list-unstyled">
-        {{ highlightHtml }}
-    </ul>
-{% endif %}
-
-{% if gridHtml != '' %}
-    <div class="section-divider" aria-hidden="true"><h2>Next Steps</h2></div>
-    <nav aria-label="Your Next Steps">
-        <ul class="btn-grid list-unstyled">
-            {{ gridHtml }}
-        </ul>
-    </nav>
-{% endif %}
-
-{% if listHtml != '' %}
-    <div class="section-divider" aria-hidden="true"><h2>Other Links</h2></div>
-    <nav aria-label="Other Links">
+    //- Now let's put it all together and make it sing
+    {% if highlightHtml != '' %}
         <ul class="btn-list list-unstyled">
-            {{ listHtml }}
+            {{ highlightHtml }}
         </ul>
-    </nav>
-{% endif %}
-{% endif %}
+    {% endif %}
+    {% if gridHtml != '' %}
+        <div class="section-divider" aria-hidden="true">
+            <h2>Next Steps</h2>
+        </div>
+        <nav aria-label="Your Next Steps">
+            <ul class="btn-grid list-unstyled">
+                {{ gridHtml }}
+            </ul>
+        </nav>
+    {% endif %}
+    {% if listHtml != '' %}
+        <div class="section-divider">
+            <h2>Other Links</h2>
+        </div>
+        <nav aria-label="Other Links">
+            <ul class="btn-list list-unstyled">
+                {{ listHtml }}
+            </ul>
+        </nav>
+    {% endif %}
+
+//- That's it. That's the whole button shabang!
