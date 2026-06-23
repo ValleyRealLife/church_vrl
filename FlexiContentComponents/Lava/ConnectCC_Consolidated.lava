@@ -80,9 +80,7 @@
                 {% endif %}
             {% endif %}
 
-            //- Now that we have URL's we can build out each of the sections.
-
-            //- First up is the Highlight section. The first item in this section will be highlighted bright green.
+            //- The Highlight section. The first item in this section will be highlighted bright green.
             {% if buttonSection == 'Highlight' %}
                 {% if highlightCount < 3 %}
                     {% if highlightCount == 0 %}
@@ -96,7 +94,7 @@
                         <li>
                             <a class="{{ btnClass }}" {{ constructedURL }} data-vt>
                                 <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
-                                <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
+                                <span class="btn-label">{{ item.Title }} <!--{% if isAdmin %}({{ itemId }}){% endif %}--></span>
                                 <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                             </a>
                         </li>
@@ -104,7 +102,7 @@
                     {% assign highlightCount = highlightCount | Plus:1 %}
                 {% endif %}
 
-                //- Let's build out the grid. Future improvement, we'll want to make sure this ALWAYS has 4 items somehow.
+                //- Build out the grid. Future improvement, we'll want to make sure this ALWAYS has 4 items somehow.
                 {% elseif buttonSection == 'Grid' %}
                     {% if gridCount < 4 %}
                         {% capture gridHtml %}
@@ -112,21 +110,21 @@
                             <li>
                                 <a class="grid-btn" {{ constructedURL }} data-vt>
                                     <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
-                                    <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ itemId }}){% endif %}</span>
+                                    <span class="btn-label">{{ item.Title }}<!-- {% if isAdmin %}({{ itemId }}){% endif %}--></span>
                                 </a>
                             </li>
                         {% endcapture %}
                         {% assign gridCount = gridCount | Plus:1 %}
                     {% endif %}
 
-                //- Last we need the rest of the items
+                //- Get the rest of the items
                 {% elseif buttonSection =='List' %}
                     {% capture listHtml %}
                         {{ listHtml }}
                         <li>
                             <a class="menu-btn" {{ constructedURL }} data-vt>
                                 <i class="{{ fontAwesome }} btn-icon" aria-hidden="true"></i>
-                                <span class="btn-label">{{ item.Title }} {% if isAdmin %}({{ item.Id }}){% endif %}</span>
+                                <span class="btn-label">{{ item.Title }}<!-- {% if isAdmin %}({{ item.Id }}){% endif %}--></span>
                                 <svg width="8" height="12" viewBox="0 0 8 12" fill="currentColor" xmlns="http://www.w3.org/2000/svg" class="chevron" aria-hidden="true"><path d="M4.6 6L0 1.4L1.4 0L7.4 6L1.4 12L0 10.6L4.6 6V6" /></svg>
                             </a>
                         </li>
